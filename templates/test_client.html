@@ -2,12 +2,30 @@
 <html>
 
 <head>
-    <title>Bangla Speech Test</title>
+    <title>Bangla → English Voice Translator</title>
+
+    <style>
+        body{
+            font-family: Arial;
+            padding:20px;
+        }
+
+        .box{
+            margin-top:20px;
+            padding:15px;
+            border:1px solid #ddd;
+        }
+
+        h3{
+            margin-bottom:5px;
+        }
+    </style>
+
 </head>
 
 <body>
 
-<h2>🎤 Bangla Voice Test</h2>
+<h2>🎤 Bangla → English Voice Translator</h2>
 
 <button onclick="startRecording()">
     Start
@@ -23,28 +41,58 @@
     Idle
 </div>
 
-<br>
+<div class="box">
 
-<div id="output">
+    <h3>Bangla Output</h3>
+
+    <div id="bangla_output">
+
+        -
+
+    </div>
 
 </div>
+
+<div class="box">
+
+    <h3>English Output</h3>
+
+    <div id="english_output">
+
+        -
+
+    </div>
+
+</div>
+
+<div class="box">
+
+    <h3>
+        Performance
+    </h3>
+
+    <div id="timings">
+
+        -
+
+    </div>
+
+</div>
+
 
 <script>
 
 let recorder;
+let chunks = [];
 
-let chunks=[];
-
+// =========================
+// OPTIONAL AUTO SPEAK
+// =========================
+let autoSpeak = true;
 
 async function startRecording(){
 
-    document
-    .getElementById(
-        "status"
-    )
-    .innerText=
-    "Recording...";
-
+    document.getElementById("status").innerText = "🎙 Recording...";
 
     const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -55,117 +103,85 @@ async function startRecording(){
         }
     });
 
+    recorder = new MediaRecorder(stream);
+    chunks = [];
 
-    recorder=
-    new MediaRecorder(
-        stream
-    );
-
-
-    chunks=[];
-
-
-    recorder.ondataavailable=
-    e=>{
-
-        if(
-            e.data.size>0
-        ){
-
-            chunks.push(
-                e.data
-            );
-
-        }
-
+    recorder.ondataavailable = e => {
+        if (e.data.size > 0) chunks.push(e.data);
     };
 
-
     recorder.start();
-
 }
-
 
 
 async function stopRecording(){
 
     recorder.stop();
 
+    recorder.onstop = async () => {
 
-    recorder.onstop=
-    async()=>{
+        document.getElementById("status").innerText = "⬆ Uploading audio...";
 
-        document
-        .getElementById(
-            "status"
-        )
-        .innerText=
-        "Processing...";
+        const blob = new Blob(chunks, { type: "audio/webm" });
 
+        let form = new FormData();
+        form.append("audio", blob, "voice.webm");
 
-        const blob=
-        new Blob(
-            chunks,
-            {
-                type:
-                "audio/webm"
-            }
-        );
+        document.getElementById("status").innerText = "🧠 Processing...";
 
-
-        let form=
-        new FormData();
-
-        form.append(
-            "audio",
-            blob,
-            "voice.webm"
-        );
-
-        
-
-
-        const response=
-        await fetch(
-
-        "/api/speech-to-text/",
-
-        {
-
-            method:
-            "POST",
-
-            body:
-            form
-
+        const response = await fetch("/api/speech-to-text/", {
+            method: "POST",
+            body: form
         });
 
+        const data = await response.json();
 
-        const data=
-        await response.json();
+        document.getElementById("bangla_output").innerText =
+            data.bangla_text || "-";
 
+        document.getElementById("english_output").innerText =
+            data.english_text || "-";
 
-        console.log(
-            data
-        );
+        // timings
+        if (data.timings) {
+            document.getElementById("timings").innerHTML = `
+Preprocess: ${data.timings.preprocess_sec}s<br>
+ASR: ${data.timings.asr_sec}s<br>
+Translation: ${data.timings.translation_sec}s<br>
+Total: ${data.timings.total_sec}s
+`;
+        }
 
+        document.getElementById("status").innerText = "✅ Done";
 
-        document
-        .getElementById(
-            "status"
-        )
-        .innerText=
-        "Done";
-
-
-        document.getElementById("output").innerHTML =
-        `
-        <p><b>Bangla:</b> ${data.bangla_text || ""}</p>
-        <p><b>English:</b> ${data.english_text || ""}</p>
-        `;
-
+        // =========================
+        // NEW: AUTO TTS PLAYBACK
+        // =========================
+        if (autoSpeak && data.english_text) {
+            playTTS(data.english_text);
+        }
     };
+}
 
+
+// =========================
+// NEW: TTS PLAYER
+// =========================
+async function playTTS(text){
+
+    const res = await fetch("/api/text-to-speech/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ text })
+    });
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+
+    const audio = new Audio(url);
+    audio.play();
 }
 
 </script>
