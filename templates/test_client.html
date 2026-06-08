@@ -5,19 +5,23 @@
     <title>Bangla → English Voice Translator</title>
 
     <style>
-        body{
+        body {
             font-family: Arial;
-            padding:20px;
+            padding: 20px;
         }
 
-        .box{
-            margin-top:20px;
-            padding:15px;
-            border:1px solid #ddd;
+        .box {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
         }
 
-        h3{
-            margin-bottom:5px;
+        h3 {
+            margin-bottom: 5px;
+        }
+
+        hr {
+            margin: 30px 0;
         }
     </style>
 
@@ -27,58 +31,50 @@
 
 <h2>🎤 Bangla → English Voice Translator</h2>
 
-<button onclick="startRecording()">
-    Start
-</button>
-
-<button onclick="stopRecording()">
-    Stop
-</button>
+<button onclick="startRecording()">Start</button>
+<button onclick="stopRecording()">Stop</button>
 
 <br><br>
 
-<div id="status">
-    Idle
-</div>
+<div id="status">Idle</div>
 
 <div class="box">
-
     <h3>Bangla Output</h3>
-
-    <div id="bangla_output">
-
-        -
-
-    </div>
-
+    <div id="bangla_output">-</div>
 </div>
 
 <div class="box">
-
     <h3>English Output</h3>
-
-    <div id="english_output">
-
-        -
-
-    </div>
-
+    <div id="english_output">-</div>
 </div>
 
 <div class="box">
-
-    <h3>
-        Performance
-    </h3>
-
-    <div id="timings">
-
-        -
-
-    </div>
-
+    <h3>Performance</h3>
+    <div id="timings">-</div>
 </div>
 
+<hr>
+
+<h2>🎤 English Speech → English Text</h2>
+
+<button onclick="startEnglishRecording()">Start English Recording</button>
+<button onclick="stopEnglishRecording()">Stop English Recording</button>
+
+<div class="box">
+    <h3>English ASR Output</h3>
+    <div id="english_asr_output">-</div>
+</div>
+
+<!-- ========================= -->
+<!-- NEW: English → Bangla -->
+<!-- ========================= -->
+
+<div class="box">
+    <h3>Bangla Output (English → Bangla)</h3>
+    <div id="english_bn_output">-</div>
+</div>
+
+<hr>
 
 <script>
 
@@ -86,11 +82,12 @@ let recorder;
 let chunks = [];
 
 // =========================
-// OPTIONAL AUTO SPEAK
+// Bangla → English PIPELINE (UNCHANGED)
 // =========================
+
 let autoSpeak = true;
 
-async function startRecording(){
+async function startRecording() {
 
     document.getElementById("status").innerText = "🎙 Recording...";
 
@@ -114,7 +111,7 @@ async function startRecording(){
 }
 
 
-async function stopRecording(){
+async function stopRecording() {
 
     recorder.stop();
 
@@ -142,7 +139,6 @@ async function stopRecording(){
         document.getElementById("english_output").innerText =
             data.english_text || "-";
 
-        // timings
         if (data.timings) {
             document.getElementById("timings").innerHTML = `
 Preprocess: ${data.timings.preprocess_sec}s<br>
@@ -154,9 +150,7 @@ Total: ${data.timings.total_sec}s
 
         document.getElementById("status").innerText = "✅ Done";
 
-        // =========================
-        // NEW: AUTO TTS PLAYBACK
-        // =========================
+        // AUTO TTS
         if (autoSpeak && data.english_text) {
             playTTS(data.english_text);
         }
@@ -165,9 +159,10 @@ Total: ${data.timings.total_sec}s
 
 
 // =========================
-// NEW: TTS PLAYER
+// TTS
 // =========================
-async function playTTS(text){
+
+async function playTTS(text) {
 
     const res = await fetch("/api/text-to-speech/", {
         method: "POST",
@@ -182,6 +177,90 @@ async function playTTS(text){
 
     const audio = new Audio(url);
     audio.play();
+}
+
+
+// =========================
+// English ASR PIPELINE (UNCHANGED)
+// =========================
+
+let englishRecorder;
+let englishChunks = [];
+
+async function startEnglishRecording() {
+
+    document.getElementById("status").innerText = "🎙 English Recording...";
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true
+    });
+
+    englishRecorder = new MediaRecorder(stream);
+    englishChunks = [];
+
+    englishRecorder.ondataavailable = e => {
+        if (e.data.size > 0) {
+            englishChunks.push(e.data);
+        }
+    };
+
+    englishRecorder.start();
+}
+
+
+async function stopEnglishRecording() {
+
+    englishRecorder.stop();
+
+    englishRecorder.onstop = async () => {
+
+        document.getElementById("status").innerText = "🧠 English ASR...";
+
+        const blob = new Blob(englishChunks, { type: "audio/webm" });
+
+        let form = new FormData();
+        form.append("audio", blob, "english.webm");
+
+        const response = await fetch("/api/english-speech-to-text/", {
+            method: "POST",
+            body: form
+        });
+
+        const data = await response.json();
+
+        document.getElementById("english_asr_output").innerText =
+            data.english_text || "-";
+
+        document.getElementById("status").innerText = "✅ English ASR Done";
+
+        // =========================
+        // NEW: EN → BN TRANSLATION
+        // =========================
+        if (data.english_text) {
+            translateEnglishToBangla(data.english_text);
+        }
+    };
+}
+
+
+// =========================
+// NEW: ENGLISH → BANGLA
+// =========================
+
+async function translateEnglishToBangla(text) {
+
+    const res = await fetch("/api/translate-en-bn/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ text })
+    });
+
+    const data = await res.json();
+
+    document.getElementById("english_bn_output").innerText =
+        data.bangla_text || "-";
 }
 
 </script>
