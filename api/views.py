@@ -13,6 +13,8 @@ from .services.tts_service import synthesize_speech
 
 from .services.english_asr_service import EnglishASRService
 
+from .services.bangla_tts_service import BanglaTTSService
+
 
 # =========================
 # UI PAGE
@@ -188,3 +190,29 @@ def translate_en_bn(request):
             },
             status=500
         )
+    
+@api_view(["POST"])
+def bangla_text_to_speech(request):
+
+    try:
+        text = request.data.get("text", "").strip()
+
+        if not text:
+            return Response(
+                {"success": False, "error": "text missing"},
+                status=400
+            )
+
+        audio_path = BanglaTTSService.synthesize(text)
+
+        return FileResponse(
+            open(audio_path, "rb"),
+            content_type="audio/mpeg"
+        )
+
+    except Exception as e:
+        return Response(
+            {"success": False, "error": str(e)},
+            status=500
+        )
+    
