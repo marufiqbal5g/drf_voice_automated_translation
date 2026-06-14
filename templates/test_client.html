@@ -1,381 +1,771 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Voice Translator</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<title>AI Voice Translator</title>
 
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background: #f5f5f5;
-        }
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-        h2 {
-            margin-top: 0;
-        }
+<style>
 
-        .container {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
-        }
+:root{
+    --primary:#2563eb;
+    --primary-dark:#1d4ed8;
+    --success:#16a34a;
+    --bg:#f4f7fb;
+    --card:#ffffff;
+    --border:#e5e7eb;
+    --text:#111827;
+    --muted:#6b7280;
+    --shadow:0 10px 30px rgba(0,0,0,.08);
+}
 
-        .column {
-            flex: 1;
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-        }
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
 
-        .box {
-            margin-top: 15px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            background: #fafafa;
-        }
+body{
+    font-family:'Inter',sans-serif;
+    background:
+        radial-gradient(circle at top left,#dbeafe 0%,transparent 35%),
+        radial-gradient(circle at top right,#e0e7ff 0%,transparent 35%),
+        var(--bg);
+    min-height:100vh;
+    color:var(--text);
+    padding:30px;
+}
 
-        h3 {
-            margin-top: 0;
-            margin-bottom: 8px;
-        }
+.header{
+    max-width:1400px;
+    margin:auto;
+    margin-bottom:25px;
+}
 
-        button {
-            padding: 10px 16px;
-            margin-right: 10px;
-            margin-bottom: 10px;
-            cursor: pointer;
-        }
+.header h1{
+    font-size:34px;
+    font-weight:700;
+    margin-bottom:8px;
+}
 
-        #status {
-            margin-top: 15px;
-            font-weight: bold;
-            color: #0066cc;
-        }
+.header p{
+    color:var(--muted);
+}
 
-        audio {
-            width: 100%;
-        }
+.status-bar{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    margin-top:15px;
+    padding:10px 16px;
+    background:white;
+    border:1px solid var(--border);
+    border-radius:30px;
+    box-shadow:var(--shadow);
+    font-weight:600;
+}
 
-        @media (max-width: 900px) {
-            .container {
-                flex-direction: column;
-            }
-        }
-    </style>
+.status-dot{
+    width:10px;
+    height:10px;
+    background:#22c55e;
+    border-radius:50%;
+}
+
+.dashboard{
+    max-width:1400px;
+    margin:auto;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:25px;
+}
+
+.panel{
+    background:rgba(255,255,255,.9);
+    backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,.4);
+    border-radius:24px;
+    padding:25px;
+    box-shadow:var(--shadow);
+}
+
+.panel-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:20px;
+}
+
+.panel-title{
+    font-size:22px;
+    font-weight:700;
+}
+
+.panel-subtitle{
+    color:var(--muted);
+    font-size:14px;
+    margin-top:4px;
+}
+
+.actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-bottom:20px;
+}
+
+.btn{
+    border:none;
+    cursor:pointer;
+    padding:12px 18px;
+    border-radius:12px;
+    font-weight:600;
+    transition:.25s;
+}
+
+.btn-primary{
+    background:var(--primary);
+    color:white;
+}
+
+.btn-primary:hover{
+    background:var(--primary-dark);
+    transform:translateY(-1px);
+}
+
+.btn-danger{
+    background:#ef4444;
+    color:white;
+}
+
+.btn-danger:hover{
+    background:#dc2626;
+}
+
+.card{
+    background:white;
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:18px;
+    margin-bottom:15px;
+}
+
+.card-title{
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    color:var(--muted);
+    margin-bottom:10px;
+    font-weight:600;
+}
+
+.output{
+    min-height:60px;
+    font-size:15px;
+    line-height:1.6;
+    word-break:break-word;
+}
+
+.performance-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+}
+
+.metric{
+    background:#f9fafb;
+    border-radius:12px;
+    padding:15px;
+    border:1px solid var(--border);
+}
+
+.metric-label{
+    font-size:13px;
+    color:var(--muted);
+}
+
+.metric-value{
+    font-size:20px;
+    font-weight:700;
+    margin-top:4px;
+}
+
+audio{
+    width:100%;
+    margin-top:10px;
+}
+
+.footer-note{
+    margin-top:20px;
+    text-align:center;
+    color:var(--muted);
+    font-size:13px;
+}
+
+@media(max-width:1000px){
+
+    body{
+        padding:15px;
+    }
+
+    .dashboard{
+        grid-template-columns:1fr;
+    }
+
+    .header h1{
+        font-size:28px;
+    }
+}
+
+</style>
 </head>
 
 <body>
 
-<div id="status">Idle</div>
+<div class="header">
 
-<div class="container">
+    <h1>AI Voice Translator Dashboard</h1>
 
-    <!-- LEFT COLUMN -->
-    <div class="column">
+    <p>
+        Real-time Bangla ↔ English speech recognition,
+        translation and voice synthesis.
+    </p>
 
-        <h2>🎤 Bangla Voice → English Voice Translator</h2>
+    <div class="status-bar">
+        <span class="status-dot"></span>
+        <span id="status">Idle</span>
+    </div>
 
-        <button onclick="startRecording()">Start</button>
-        <button onclick="stopRecording()">Stop</button>
+</div>
 
-        <div class="box">
-            <h3>Bangla Output</h3>
-            <div id="bangla_output">-</div>
+<div class="dashboard">
+
+    <!-- LEFT PANEL -->
+
+    <div class="panel">
+
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">
+                    🎤 Bangla → English
+                </div>
+
+                <div class="panel-subtitle">
+                    Speech Recognition + Translation + English Voice
+                </div>
+            </div>
         </div>
 
-        <div class="box">
-            <h3>English Output</h3>
-            <div id="english_output">-</div>
+        <div class="actions">
+            <button class="btn btn-primary"
+                onclick="startRecording()">
+                Start Recording
+            </button>
+
+            <button class="btn btn-danger"
+                onclick="stopRecording()">
+                Stop Recording
+            </button>
         </div>
 
-        <div class="box">
-            <h3>Performance</h3>
-            <div id="timings">-</div>
+        <div class="card">
+            <div class="card-title">Bangla Speech Output</div>
+            <div class="output" id="bangla_output">-</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">English Translation</div>
+            <div class="output" id="english_output">-</div>
+        </div>
+
+        <div class="card">
+
+            <div class="card-title">
+                Processing Performance
+            </div>
+
+            <div class="performance-grid">
+
+                <div class="metric">
+                    <div class="metric-label">Preprocess</div>
+                    <div class="metric-value"
+                        id="preprocess_time">-</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">ASR</div>
+                    <div class="metric-value"
+                        id="asr_time">-</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Translation</div>
+                    <div class="metric-value"
+                        id="translation_time">-</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Total</div>
+                    <div class="metric-value"
+                        id="total_time">-</div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="card">
+
+            <div class="card-title">
+                English AI Voice Playback
+            </div>
+
+            <audio
+                id="english_audio_player"
+                controls>
+            </audio>
+
         </div>
 
     </div>
 
-    <!-- RIGHT COLUMN -->
-    <div class="column">
+    <!-- RIGHT PANEL -->
 
-        <h2>🎤 English Speech → Bangla Voice</h2>
+    <div class="panel">
 
-        <button onclick="startEnglishRecording()">Start English Recording</button>
-        <button onclick="stopEnglishRecording()">Stop English Recording</button>
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">
+                    🎧 English → Bangla
+                </div>
 
-        <div class="box">
-            <h3>English ASR Output</h3>
-            <div id="english_asr_output">-</div>
+                <div class="panel-subtitle">
+                    English Speech Recognition + Bangla AI Voice
+                </div>
+            </div>
         </div>
 
-        <div class="box">
-            <h3>Bangla Output (English → Bangla)</h3>
-            <div id="english_bn_output">-</div>
+        <div class="actions">
+
+            <button class="btn btn-primary"
+                onclick="startEnglishRecording()">
+                Start Recording
+            </button>
+
+            <button class="btn btn-danger"
+                onclick="stopEnglishRecording()">
+                Stop Recording
+            </button>
+
         </div>
 
-        <div class="box">
-            <h3>Bangla AI Voice</h3>
-            <audio id="bangla_audio_player" controls></audio>
+        <div class="card">
+            <div class="card-title">
+                English Speech Output
+            </div>
+
+            <div class="output"
+                id="english_asr_output">
+                -
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">
+                Bangla Translation
+            </div>
+
+            <div class="output"
+                id="english_bn_output">
+                -
+            </div>
+        </div>
+
+        <div class="card">
+
+            <div class="card-title">
+                Processing Performance
+            </div>
+
+            <div class="performance-grid">
+
+                <div class="metric">
+                    <div class="metric-label">Preprocess</div>
+                    <div class="metric-value"
+                        id="en_preprocess_time">-</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">ASR</div>
+                    <div class="metric-value"
+                        id="en_asr_time">-</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Translation</div>
+                    <div class="metric-value"
+                        id="en_translation_time">-</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Total</div>
+                    <div class="metric-value"
+                        id="en_total_time">-</div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="card">
+
+            <div class="card-title">
+                Bangla AI Voice Playback
+            </div>
+
+            <audio
+                id="bangla_audio_player"
+                controls>
+            </audio>
+
         </div>
 
     </div>
 
 </div>
 
+<div class="footer-note">
+    Powered by AI Speech Recognition • Neural Translation • Voice Synthesis
+</div>
+
 <script>
 
 let recorder;
 let chunks = [];
-
-// =====================================
-// Bangla → English Pipeline
-// =====================================
-
 let autoSpeak = true;
 
 async function startRecording() {
 
-    document.getElementById("status").innerText = "🎙 Recording Bangla...";
+    document.getElementById("status").innerText =
+        "Recording Bangla...";
 
-    const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-            sampleRate: 16000
-        }
-    });
+    const stream =
+        await navigator.mediaDevices.getUserMedia({
+            audio:{
+                echoCancellation:true,
+                noiseSuppression:true,
+                autoGainControl:true,
+                sampleRate:16000
+            }
+        });
 
     recorder = new MediaRecorder(stream);
+
     chunks = [];
 
-    recorder.ondataavailable = e => {
-        if (e.data.size > 0) chunks.push(e.data);
+    recorder.ondataavailable = e=>{
+        if(e.data.size>0)
+            chunks.push(e.data);
     };
 
     recorder.start();
 }
 
-async function stopRecording() {
+async function stopRecording(){
 
     recorder.stop();
 
-    recorder.onstop = async () => {
+    recorder.onstop = async()=>{
 
         document.getElementById("status").innerText =
-            "⬆ Uploading Bangla Audio...";
+            "Processing Bangla Speech...";
 
-        const blob = new Blob(chunks, {
-            type: "audio/webm"
-        });
+        const blob =
+            new Blob(chunks,{type:"audio/webm"});
 
         let form = new FormData();
-        form.append("audio", blob, "voice.webm");
 
-        document.getElementById("status").innerText =
-            "🧠 Processing Bangla Speech...";
+        form.append(
+            "audio",
+            blob,
+            "voice.webm"
+        );
 
-        const response = await fetch("/api/speech-to-text/", {
-            method: "POST",
-            body: form
-        });
+        const response =
+            await fetch(
+                "/api/speech-to-text/",
+                {
+                    method:"POST",
+                    body:form
+                }
+            );
 
-        const data = await response.json();
+        const data =
+            await response.json();
 
-        document.getElementById("bangla_output").innerText =
+        document.getElementById("bangla_output")
+            .innerText =
             data.bangla_text || "-";
 
-        document.getElementById("english_output").innerText =
+        document.getElementById("english_output")
+            .innerText =
             data.english_text || "-";
 
-        if (data.timings) {
+        if(data.timings){
 
-            document.getElementById("timings").innerHTML = `
-                Preprocess: ${data.timings.preprocess_sec}s<br>
-                ASR: ${data.timings.asr_sec}s<br>
-                Translation: ${data.timings.translation_sec}s<br>
-                Total: ${data.timings.total_sec}s
-            `;
+            document.getElementById("preprocess_time")
+                .innerText =
+                data.timings.preprocess_sec + "s";
+
+            document.getElementById("asr_time")
+                .innerText =
+                data.timings.asr_sec + "s";
+
+            document.getElementById("translation_time")
+                .innerText =
+                data.timings.translation_sec + "s";
+
+            document.getElementById("total_time")
+                .innerText =
+                data.timings.total_sec + "s";
         }
 
-        document.getElementById("status").innerText = "✅ Bangla → English Done";
+        document.getElementById("status").innerText =
+            "Bangla → English Complete";
 
-        if (autoSpeak && data.english_text) {
-            playTTS(data.english_text);
+        if(autoSpeak && data.english_text){
+            playEnglishVoice(data.english_text);
         }
     };
 }
 
+async function playEnglishVoice(text){
 
-// =====================================
-// English TTS
-// =====================================
+    const res =
+        await fetch(
+            "/api/text-to-speech/",
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({text})
+            }
+        );
 
-async function playTTS(text) {
+    const blob =
+        await res.blob();
 
-    const res = await fetch("/api/text-to-speech/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            text
-        })
-    });
+    const player =
+        document.getElementById(
+            "english_audio_player"
+        );
 
-    const blob = await res.blob();
+    player.src =
+        URL.createObjectURL(blob);
 
-    const url = URL.createObjectURL(blob);
-
-    const audio = new Audio(url);
-
-    audio.play();
+    player.play();
 }
-
-
-// =====================================
-// English → Bangla Pipeline
-// =====================================
 
 let englishRecorder;
 let englishChunks = [];
 
-let latestBanglaText = "";
-
-async function startEnglishRecording() {
+async function startEnglishRecording(){
 
     document.getElementById("status").innerText =
-        "🎙 Recording English...";
+        "Recording English...";
 
-    const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true
-    });
+    const stream =
+        await navigator.mediaDevices.getUserMedia({
+            audio:{
+                echoCancellation:true,
+                noiseSuppression:true,
+                autoGainControl:true,
+                sampleRate:16000
+            }
+        });
 
-    englishRecorder = new MediaRecorder(stream);
+    englishRecorder =
+        new MediaRecorder(stream);
 
     englishChunks = [];
 
-    englishRecorder.ondataavailable = e => {
-
-        if (e.data.size > 0) {
-            englishChunks.push(e.data);
-        }
-    };
+    englishRecorder.ondataavailable =
+        e=>{
+            if(e.data.size>0)
+                englishChunks.push(e.data);
+        };
 
     englishRecorder.start();
 }
 
-async function stopEnglishRecording() {
+async function stopEnglishRecording(){
 
     englishRecorder.stop();
 
-    englishRecorder.onstop = async () => {
+    englishRecorder.onstop =
+        async()=>{
 
         document.getElementById("status").innerText =
-            "🧠 English ASR Processing...";
+            "Processing English Speech...";
 
-        const blob = new Blob(
-            englishChunks,
-            {
-                type: "audio/webm"
-            }
-        );
+        const blob =
+            new Blob(
+                englishChunks,
+                {type:"audio/webm"}
+            );
 
         let form = new FormData();
 
-        form.append("audio", blob, "english.webm");
-
-        const response = await fetch(
-            "/api/english-speech-to-text/",
-            {
-                method: "POST",
-                body: form
-            }
+        form.append(
+            "audio",
+            blob,
+            "english.webm"
         );
 
-        const data = await response.json();
+        const response =
+            await fetch(
+                "/api/english-speech-to-text/",
+                {
+                    method:"POST",
+                    body:form
+                }
+            );
 
-        document.getElementById("english_asr_output").innerText =
+        const data =
+            await response.json();
+
+        document.getElementById(
+            "english_asr_output"
+        ).innerText =
             data.english_text || "-";
 
-        document.getElementById("status").innerText =
-            "✅ English ASR Done";
+        if(data.timings){
 
-        if (data.english_text) {
-            translateEnglishToBangla(data.english_text);
+            document.getElementById(
+                "en_preprocess_time"
+            ).innerText =
+                data.timings.preprocess_sec + "s";
+
+            document.getElementById(
+                "en_asr_time"
+            ).innerText =
+                data.timings.asr_sec + "s";
         }
+
+        if(data.english_text){
+
+            await translateEnglishToBangla(
+                data.english_text,
+                data.timings || {}
+            );
+        }
+
+        document.getElementById("status").innerText =
+            "English → Bangla Complete";
     };
 }
 
+async function translateEnglishToBangla(
+    text,
+    previousTimings = {}
+){
 
-// =====================================
-// English → Bangla Translation
-// =====================================
+    const translationStart =
+        performance.now();
 
-async function translateEnglishToBangla(text) {
+    const res =
+        await fetch(
+            "/api/translate-en-bn/",
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({text})
+            }
+        );
 
-    const res = await fetch("/api/translate-en-bn/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            text
-        })
-    });
+    const data =
+        await res.json();
 
-    const data = await res.json();
+    const translationEnd =
+        performance.now();
 
-    const banglaText = data.bangla_text || "";
+    const translationSeconds =
+        (
+            (translationEnd -
+             translationStart) / 1000
+        ).toFixed(2);
 
-    document.getElementById("english_bn_output").innerText =
+    const banglaText =
+        data.bangla_text || "";
+
+    document.getElementById(
+        "english_bn_output"
+    ).innerText =
         banglaText;
 
-    latestBanglaText = banglaText;
+    document.getElementById(
+        "en_translation_time"
+    ).innerText =
+        translationSeconds + "s";
 
-    if (banglaText) {
+    const preprocess =
+        Number(
+            previousTimings.preprocess_sec || 0
+        );
+
+    const asr =
+        Number(
+            previousTimings.asr_sec || 0
+        );
+
+    const total =
+        (
+            preprocess +
+            asr +
+            Number(translationSeconds)
+        ).toFixed(2);
+
+    document.getElementById(
+        "en_total_time"
+    ).innerText =
+        total + "s";
+
+    if(banglaText){
         playBanglaVoice(banglaText);
     }
 }
 
+async function playBanglaVoice(text){
 
-// =====================================
-// Bangla TTS
-// =====================================
+    const res =
+        await fetch(
+            "/api/bangla-text-to-speech/",
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({text})
+            }
+        );
 
-async function playBanglaVoice(text) {
-
-    if (!text) return;
-
-    const res = await fetch(
-        "/api/bangla-text-to-speech/",
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                text
-            })
-        }
-    );
-
-    const blob = await res.blob();
-
-    const url = URL.createObjectURL(blob);
+    const blob =
+        await res.blob();
 
     const player =
-        document.getElementById("bangla_audio_player");
+        document.getElementById(
+            "bangla_audio_player"
+        );
 
-    player.src = url;
+    player.src =
+        URL.createObjectURL(blob);
 
     player.play();
 }
